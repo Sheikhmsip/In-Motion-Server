@@ -30,7 +30,9 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     const usersCollection = client.db("summerCamp").collection("users");
+    const classesCollection = client.db("summerCamp").collection("classes");
 
+// User APIS
 
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -45,6 +47,13 @@ async function run() {
       res.send(result);
 
     });
+
+    // classes API 
+
+    app.get('/classes', async (req, res) =>{
+      const result = await classesCollection.find().limit(6).toArray();
+      res.send(result);
+    })
 
 
 
