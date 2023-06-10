@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 
 
@@ -9,10 +11,29 @@ app.use(cors());
 app.use(express.json());
 
 
+// JWT token 
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' });
+  }
+  // Bearer token
+  const token = authorization.split(' ')[1];
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ error: true, message: 'unauthorized access' })
+    }
+    req.decoded = decoded;
+    next()
+  })
+
+}
+
 // Pass: DObLeftNP0by7thh
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+
 // const uri = "mongodb+srv://<username>:<password>@cluster0.vvvwsgj.mongodb.net/?retryWrites=true&w=majority";
 const uri = "mongodb+srv://summerCamp:DObLeftNP0by7thh@cluster0.vvvwsgj.mongodb.net/?retryWrites=true&w=majority";
 
@@ -31,6 +52,17 @@ async function run() {
     // await client.connect();
     const usersCollection = client.db("summerCamp").collection("users");
     const classesCollection = client.db("summerCamp").collection("classes");
+    const instructorsCollection = client.db("summerCamp").collection("instructors");
+
+
+
+
+    // JWT 
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+      res.send({ token })
+    })
 
 // User APIS
 
@@ -48,10 +80,17 @@ async function run() {
 
     });
 
-    // classes API 
+    // Classes API 
 
     app.get('/classes', async (req, res) =>{
-      const result = await classesCollection.find().limit(6).toArray();
+      const result = await classesCollection.find().toArray();
+      res.send(result);
+    })
+
+    // Instructors API 
+
+    app.get('/instructors', async (req, res) =>{
+      const result = await instructorsCollection.find().toArray();
       res.send(result);
     })
 
