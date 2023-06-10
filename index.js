@@ -1,8 +1,10 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+
 const port = process.env.PORT || 5000;
 
 
@@ -53,6 +55,7 @@ async function run() {
     const usersCollection = client.db("summerCamp").collection("users");
     const classesCollection = client.db("summerCamp").collection("classes");
     const instructorsCollection = client.db("summerCamp").collection("instructors");
+    const enrollCollection = client.db("summerCamp").collection("allEnroll")
 
 
 
@@ -92,6 +95,31 @@ async function run() {
     app.get('/instructors', async (req, res) =>{
       const result = await instructorsCollection.find().toArray();
       res.send(result);
+    })
+
+    // Enroll related API 
+
+    app.post('/all-enroll', async(req, res)=>{
+      const enroll = req.body;
+      const result = await enrollCollection.insertOne(enroll);
+      res.send(result)
+    })
+    
+    app.get('/enroll', verifyJWT, async(req, res)=>{
+      const email = req.query.email;
+      // console.log(email)
+      if(!email){
+       return res.send([]);
+      }
+      const decodedEmail = req.decoded.email;
+      if(email !== decodedEmail){
+        return res.status(403).send({error: True, message: 'forbidden access'})
+      }
+    
+      const query = {email: email};
+      // console.log(query)
+      const result = await enrollCollection.find(query).toArray();
+      res.send(result)
     })
 
 
