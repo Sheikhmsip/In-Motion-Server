@@ -97,12 +97,37 @@ async function run() {
     });
 
 
-    app.get('/users', verifyJWT, verifyAdmin,  async(req, res)=>{
+    app.get('/users', verifyJWT,  async(req, res)=>{
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
 
+    // User update related api 
+
+    app.patch('/users/admin/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const updateUser = {
+        $set: {
+          role: 'admin'
+        },
+      }
+      const result = await usersCollection.updateOne(query, updateUser)
+      res.send(result)
+    })
     
+    app.patch('/users/instructor/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const updateUser = {
+        $set: {
+          role: 'instructor' 
+        },
+      }
+      const result = await usersCollection.updateOne(query, updateUser)
+      res.send(result)
+    })
+
 
 
     // Classes API 
