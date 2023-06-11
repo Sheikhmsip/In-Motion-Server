@@ -99,11 +99,6 @@ async function run() {
       res.send(result);
     })
 
-    // app.get('/allenroll', async (req, res) =>{
-    //   const result = await enrollCollection.find().toArray();
-    //   res.send(result);
-    // })
-
     // Enroll related API 
 
     app.post('/all-enroll', async(req, res)=>{
@@ -128,6 +123,7 @@ async function run() {
       const result = await enrollCollection.find(query).toArray();
       res.send(result)
     })
+
 // Delete enroll selected class 
 
     app.delete('/enroll/:id', async(req, res)=>{
@@ -160,6 +156,24 @@ async function run() {
         res.send({ insertResult, deleteResult });
       })
 
+      app.get('/my-enroll-class', verifyJWT, async(req, res)=>{
+        const email = req.query.email;
+        // console.log(email)
+        if(!email){
+         return res.send([]);
+        }
+        const decodedEmail = req.decoded.email;
+        if(email !== decodedEmail){
+          return res.status(403).send({error: True, message: 'forbidden access'})
+        }
+      
+        const query = {email: email};
+        // console.log(query)
+        const result = await paymentCollection.find(query).toArray();
+        res.send(result)
+      })
+      
+      
 
 
     // Send a ping to confirm a successful connection
