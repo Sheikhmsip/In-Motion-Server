@@ -128,6 +128,20 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+    
+      if (req.decoded.email !== email) {
+        res.send({ admin: false })
+      }
+    
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      const result = { admin: user?.role === 'instructor' }
+      res.send(result);
+    })
+    
+
     app.get('/users/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
     
@@ -154,16 +168,34 @@ async function run() {
     // Classes API 
 
     app.get('/classes', async (req, res) =>{
-      const result = await classesCollection.find().toArray();
+      const query = {};
+      const options = {
+        sort: {"price": -1}
+      };
+
+      const result = await classesCollection.find(query, options).toArray();
       res.send(result);
     })
 
     // Instructors API 
 
     app.get('/instructors', async (req, res) =>{
-      const result = await instructorsCollection.find().toArray();
+      const query = {};
+      const options = {
+        sort: {"price": -1}
+      };
+      const result = await instructorsCollection.find(query, options).toArray();
       res.send(result);
+    });
+
+    app.post('/addClass', async(req, res)=>{
+      const item = req.body;
+      const result = await classesCollection.insertOne(item)
+      res.send(result)
+    
     })
+
+
 
     // Enroll related API 
 
