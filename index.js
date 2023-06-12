@@ -33,12 +33,9 @@ const verifyJWT = (req, res, next) => {
 
 }
 
-// Pass: DObLeftNP0by7thh
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vvvwsgj.mongodb.net/?retryWrites=true&w=majority`;
 
-
-// const uri = "mongodb+srv://<username>:<password>@cluster0.vvvwsgj.mongodb.net/?retryWrites=true&w=majority";
-const uri = "mongodb+srv://summerCamp:DObLeftNP0by7thh@cluster0.vvvwsgj.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -115,6 +112,20 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateUser)
       res.send(result)
     })
+
+    app.get('/users/admin/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+    
+      if (req.decoded.email !== email) {
+        res.send({ admin: false })
+      }
+    
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      const result = { admin: user?.role === 'admin' }
+      res.send(result);
+    })
+
     
     app.patch('/users/instructor/:id', async(req, res)=>{
       const id = req.params.id;
@@ -142,19 +153,23 @@ async function run() {
     })
     
 
-    app.get('/users/admin/:email', verifyJWT, async (req, res) => {
-      const email = req.params.email;
+    // Get instructor added class 
     
-      if (req.decoded.email !== email) {
-        res.send({ admin: false })
-      }
-    
-      const query = { email: email }
-      const user = await usersCollection.findOne(query);
-      const result = { admin: user?.role === 'admin' }
-      res.send(result);
-    })
+app.get('/instructor-class', verifyJWT, async(req, res)=>{
+  const email = req.query.email;
+  if(!email){
+   return res.send([]);
+  }
+  const decodedEmail = req.decoded.email;
+  if(email !== decodedEmail){
+    return res.status(403).send({error: True, message: 'forbidden access'})
+  }
+  const query = {email: email};
+  const result = await classesCollection.find(query).toArray();
+  res.send(result)
+})
 
+    
     // User Delete Api 
     app.delete('/user-delete/:id', async(req, res)=>{
       const id = req.params.id;
